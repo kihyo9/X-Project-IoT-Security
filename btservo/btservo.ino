@@ -1,182 +1,104 @@
 /*
-
+  Last edited: Jul 14 2019
+  by Ruben Verhagen
 */
 
 #include <SoftwareSerial.h>
 #include <Servo.h> 
 #include <Adafruit_NeoPixel.h>
 
-#define LED_PIN    6
-#define LED_COUNT 12
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN);  
+#define ledCount 12
+Adafruit_NeoPixel strip(ledCount, ledPin);
 
-#define RELAY_PIN   10
+SoftwareSerial Bluetooth(3,4);  //defines arduino RX,TX  
 
+//PIN DEFINITIONS
+#define ledPin    6
+#define relayPin   10
+#define servoPin  9
 
-SoftwareSerial Bluetooth(3,4);
-int servoPin = 9;         //servo designation attached to 9 pin
-Servo Servo1;              //servo object
-int Data=1;
+Servo Servo1; //servo object
+int data=0;
+int i=0;
 int pos=1;
 int power=1;
-//const int BUTTON = 2;
-
 
 void setup() {
-  
   Servo1.attach(servoPin); //servo pin
   Bluetooth.begin(9600);
-  //pinMode (BUTTON, INPUT); //button 
 
-    pinMode(RELAY_PIN, OUTPUT); //relay
+  pinMode(relayPin, OUTPUT); //relay
   strip.begin();
-     strip.show();  // Initialize all pixels to 'off'
-     strip.setBrightness(255); // Set BRIGHTNESS to about 4/5 (max = 255)
-}
+  strip.show();  // Initialize all pixels to 'off'
+  strip.setBrightness(4); // Set BRIGHTNESS (max = 255)
+}//setup
+
+/* BLUETOOTH APP DATA
+ *  when a button is pressed on the app, it will send a certain data value
+ *  Function-------------Value
+ *  Camera Covered-------0
+ *  Camera Open----------1
+ *  Intermittent Camera--2
+ *  Relay Off------------3
+ *  Relay On-------------4
+ */
 
 void loop() {
-  
-  
-  
-  if (Bluetooth.available()){
-    Data=Bluetooth.read();
-  switch(Data){    
-
-   
-          /*case 0xFF02FD: //Keypad button PLAYPAUSE*/
-          case 0:
-          Servo1.write(90);
-          delay(200);
-         
-         
-          Bluetooth.println("View is covered");
-          pos=0;
-          break;
-          
-          
-         
-          
-    
-    //switch for power button to start constant rotation
-          /*case 0xFFA25D: //Keypad button POWER*/
-          case 1:
-
-          Servo1.write(0);
-          Bluetooth.println("View is clear");
-          pos=1;
-         break;
-          
-         
-
-        
-          /*case 0xFFE21D: //keypad button func/stop*/
-          case 2:
-          pos=2; 
-          Data=2;
-          Servo1.write(0);
-          delay(1000);
-          
-          if(Data==2){//Obscured
-    colorWipe(strip.Color(255,   255,   0), 50); // Yellow
-     colorWipe(0, 50); // Blank
-   }
-          
-         if(Data == 1){
-          
-          Servo1.write(0);
-         
-          break;
-          
-          }
-
-         
-
-         
-
-          
-          Servo1.write(90);
-          delay(3000);
-
-          if(Data == 1){
-          
-          Servo1.write(0);
-          break;
-          
-          }
-
-          
-
-          
-          Servo1.write(0);
-          delay(1000);
-
-          if(Data == 1){
-          
-          Servo1.write(0);
-          break;
-         
-          }
-
-          
-
-         
-          Servo1.write(90);
-          delay(3000);
-
-
-        if(Data == 1){
-          
-          Servo1.write(0);
-          break;
-         
-        }
-        
-         
-
-         
-          
-          
-          
-  
-        
-
-         
-   
-  }//switch Data
-  //RELAY
-   if(Data==4)//RELAY ON
-   {
-    digitalWrite(RELAY_PIN, HIGH);
-    
-      Data=pos;
-    power=1;
-   }
-   else if(Data==3) //RELAY OFF
-   {
-    digitalWrite(RELAY_PIN, LOW);
-    colorWipe(0, 0); // Blank
-    power=0;
-   }
-  
+  if (Bluetooth.available()){//checks if the app is sending new data
+    data=Bluetooth.read();
+    switch(data){    
+      case 0:
+        pos=0;
+        break;
+      case 1:
+        pos =1;
+        break;
+      case 2:
+        pos=2;
+        break;
+      case 3:
+        power= 0;
+        digitialWrite(relayPin, LOW);
+        colorWipe(0,0);
+        break;
+      case 4:
+        power= 1;
+        digitalWrite(relayPin, HIGH);
+        break;
+    }//switch data
   }  //if Bluetooth.available
-  //COLOR
-  if(power==1){
-    Serial.print("Relay On: ddata is ");
-    Serial.println(Data);
-   if(Data==0){//Closed
-    colorWipe(strip.Color(255,   0,   0), 50); // Red
-   }
-   else if(Data==1){//Open
-    colorWipe(strip.Color(0,   255,   0), 50); // Green
-     colorWipe(0, 50); // Blank
-   }
-   else if(Data==2){//Obscured
-    colorWipe(strip.Color(255,   255,   0), 50); // Yellow
-     colorWipe(0, 50); // Blank
-   }
-    }//power on
-delay(50);
-}
+
+  //SERVO AND COLOR
+  switch(pos){
+    case 0:
+      if(servo.read()!=90)
+        servo.write(90);
+      if(power==1)
+        colorWipe(strip.Color(255,   0,   0), 50); // Red
+      break;
+    case 1:
+      if(servo.read()!=0)
+        servo.write(0);
+      if(power==1){
+        colorWipe(strip.Color(0,   255,   0), 50); // Green
+        colorWipe(0, 50); // Blank
+      }//if
+      break;
+    case 2:
+      if(servo.read()!=90)
+        servo.write(90);
+      delay(5);
+      i+=5;
+      if(i>=3000&&power==1){
+        servo.write(90);
+        colorWipe(strip.Color(255,   255,   0), 0); // Yellow
+        colorWipe(0, ledCount*50); // Blank
+        i=0;
+      }//if
+      break;
+      
+  }//switch(pos)
+}//loop
 
 // Fill strip pixels one after another with a color. Strip is NOT cleared
 // first; anything there will be covered pixel by pixel. Pass in color
@@ -188,5 +110,5 @@ void colorWipe(uint32_t color, int wait) {
     strip.setPixelColor(i, color);         //  Set pixel's color (in RAM)
     strip.show();                          //  Update strip to match
     delay(wait);                           //  Pause for a moment
-  }
-}
+  }//for
+}//colorWipe
