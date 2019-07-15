@@ -7,24 +7,24 @@
 #include <Servo.h> 
 #include <Adafruit_NeoPixel.h>
 
-#define ledCount 12
-Adafruit_NeoPixel strip(ledCount, ledPin);
-
-SoftwareSerial Bluetooth(3,4);  //defines arduino RX,TX  
-
 //PIN DEFINITIONS
 #define ledPin    6
 #define relayPin   10
 #define servoPin  9
 
-Servo Servo1; //servo object
+#define ledCount 12
+Adafruit_NeoPixel strip(ledCount, ledPin);
+
+SoftwareSerial Bluetooth(3,4);  //defines arduino RX,TX  
+
+Servo servo1; //servo object
 int data=0;
 int i=0;
 int pos=1;
 int power=1;
 
 void setup() {
-  Servo1.attach(servoPin); //servo pin
+  servo1.attach(servoPin); //servo pin
   Bluetooth.begin(9600);
 
   pinMode(relayPin, OUTPUT); //relay
@@ -58,7 +58,7 @@ void loop() {
         break;
       case 3:
         power= 0;
-        digitialWrite(relayPin, LOW);
+        digitalWrite(relayPin, LOW);
         colorWipe(0,0);
         break;
       case 4:
@@ -71,28 +71,28 @@ void loop() {
   //SERVO AND COLOR
   switch(pos){
     case 0:
-      if(servo.read()!=90)
-        servo.write(90);
+      if(servo1.read()!=90)
+        servo1.write(90);
       if(power==1)
         colorWipe(strip.Color(255,   0,   0), 50); // Red
       break;
     case 1:
-      if(servo.read()!=0)
-        servo.write(0);
+      if(servo1.read()!=0)
+        servo1.write(0);
       if(power==1){
         colorWipe(strip.Color(0,   255,   0), 50); // Green
         colorWipe(0, 50); // Blank
       }//if
       break;
     case 2:
-      if(servo.read()!=90)
-        servo.write(90);
+      if(servo1.read()!=90)
+        servo1.write(90);
       delay(5);
       i+=5;
       if(i>=3000&&power==1){
-        servo.write(90);
+        servo1.write(0);
         colorWipe(strip.Color(255,   255,   0), 0); // Yellow
-        colorWipe(0, ledCount*50); // Blank
+        colorWipe(0, 80); // Blank
         i=0;
       }//if
       break;
