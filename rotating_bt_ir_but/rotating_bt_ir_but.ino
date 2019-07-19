@@ -16,6 +16,7 @@
 #define button1Pin 7
 #define button2Pin 5
 #define button3Pin 2
+#define micButton 12
 
 
 #define ledCount 12
@@ -34,6 +35,7 @@ int power=1;
 int brite=255;
 int pulse=25;
 int change=1;
+bool micState = true;
 
 void setup() {
   myservo.attach(servoPin); //servo pin
@@ -51,6 +53,7 @@ void setup() {
   pinMode(button1Pin, INPUT);
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
+  pinMode(micButton, INPUT);
 }//setup
 
 /* BLUETOOTH APP DATA
@@ -76,6 +79,29 @@ void setup() {
  */
 
 void loop() {
+  if(digitalRead(micButton) == HIGH)
+  {
+    if(micState == false)
+    {
+      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
+        strip.setPixelColor(j, strip.Color(0,   0, brite));         //  Set pixel's color (in RAM)
+        strip.show();                          //  Update strip to match
+      }//for
+    }
+    micState = true;
+  }
+  else
+  {
+    if(micState == true)
+    {
+      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
+        strip.setPixelColor(j, 0);         //  Set pixel's color (in RAM)
+        strip.show();                          //  Update strip to match
+      }//for
+    }
+    micState = false;
+  }
+  
   if (Bluetooth.available()){//checks if the app is sending new data
     data=Bluetooth.read();
     switch(data){    
