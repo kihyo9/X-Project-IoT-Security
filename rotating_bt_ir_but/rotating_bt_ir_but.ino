@@ -32,7 +32,8 @@ int i=0;
 int pos=1;
 int power=1;
 int brite=255;
-int pulse=75;
+int pulse=25;
+int change=1;
 
 void setup() {
   myservo.attach(servoPin); //servo pin
@@ -80,12 +81,15 @@ void loop() {
     switch(data){    
       case 0:
         pos=0;
+        change=1;
         break;
       case 1:
         pos =1;
+        change=1;
         break;
       case 2:
         pos=2;
+        change=1;
         break;
       case 3:
         power= 0;
@@ -106,12 +110,15 @@ void loop() {
     {
       case 16720605: //if A is pushed OPEN
         pos=1;
+        change=1;
         break;
       case 16712445: //if B is pushed OBSCURED
         pos=2;
+        change=1;
         break;
       case 16761405: //if C is pushed CLOSED
         pos=0;
+        change=1;
         break;
       case 16736925: //if ON/OFF is pushed
         if(power==0){
@@ -129,31 +136,47 @@ void loop() {
   } //if irrecv
 
   if(digitalRead(button1Pin)==HIGH){
-    pos=1;}
+    pos=1;
+    change=1;
+  }
   else if(digitalRead(button2Pin)==HIGH){
-    pos=2;}
+    pos=2;
+    change=1;
+  }
   else if(digitalRead(button3Pin)==HIGH){
-    pos=0;}
+    pos=0;
+    change=1;
+  }
 
   //SERVO AND COLOR
+
   switch(pos){
     case 0:
+    if(change==1){
       if(myservo.read()!=90)
         myservo.write(90);
       if(power==1)
         colorWipe(strip.Color(brite,   0,   0), pulse); // Red
+      change=0;
+    }
       break;
     case 1:
+    if(change==1){
       if(myservo.read()!=0)
         myservo.write(0);
       if(power==1){
         colorWipe(strip.Color(0,   brite,   0), pulse); // Green
-        colorWipe(0, pulse); // Blank
       }//if
+      change=0;
+    }
       break;
     case 2:
-      if(myservo.read()!=90)
-        myservo.write(90);
+      if(change==1){
+        colorWipe(0, 0); // Blank
+        if(myservo.read()!=90)
+          myservo.write(90);
+        change=0;
+      }
       delay(5);
       i+=5;
       if(i>=3000&&power==1){
@@ -161,10 +184,13 @@ void loop() {
         colorWipe(strip.Color(brite,   brite,   0), 0); // Yellow
         colorWipe(0, 120); // Blank
         i=0;
+        change=1;
       }//if
+      
       break;
       
   }//switch(pos)
+
 }//loop
 
 // Fill strip pixels one after another with a color. Strip is NOT cleared
