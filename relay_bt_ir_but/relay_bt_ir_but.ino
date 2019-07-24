@@ -1,3 +1,5 @@
+
+
 /*
   Last edited: Jul 19 2019
   by Ruben Verhagen
@@ -9,13 +11,12 @@
 
 //PIN DEFINITIONS
 #define ledPin    6
-#define relayPin   4  
+#define relayPin   4  //THIS IS THE SWITCH PIN, CONTROLLING THE RELAY
 #define irPin 10 //power, gnd, pin
-#define switchPin 7 //
 #define micPin 12 //digital
 
 
-#define ledCount 16
+#define ledCount 12
 Adafruit_NeoPixel strip(ledCount, ledPin);
 
 IRrecv irrecv(irPin);  //IR reciever
@@ -27,14 +28,12 @@ int data=0;
 int brite=255;
 int pulse=25;
 int change=1;
-bool micState = true;
+bool micState = false;
 bool relayState = true;
 
 void setup() {
   Bluetooth.begin(9600);
-
-  pinMode(relayPin, OUTPUT); //relay
-  digitalWrite(relayPin, HIGH);
+  Serial.begin(9600);
   
   strip.begin();
   strip.show();  // Initialize all pixels to 'off'
@@ -44,6 +43,34 @@ void setup() {
 
   pinMode(relayPin, INPUT);
   pinMode(micPin, INPUT);
+
+  //initialize the relay lights
+  if(digitalRead(relayPin)==HIGH){
+    colorWipe(strip.Color(0,   brite,   0), pulse); // Green
+    relayState=true;
+  }
+  else{
+    colorWipe(0, 0); // Blank
+    relayState=false;
+  }
+
+  //initialize mic lights
+  if(digitalRead(micPin) == HIGH)
+  {
+    for(int j=ledCount-4; j<ledCount; j++) { 
+      strip.setPixelColor(j, strip.Color(0,   0, brite));  
+      strip.show();   
+    }//for
+    micState = true;
+  }
+  else
+  {
+    for(int j=ledCount-4; j<ledCount; j++) {
+      strip.setPixelColor(j, 0); 
+      strip.show();
+    }//for
+    micState = false;
+  }
 }//setup
 
 /* BLUETOOTH APP DATA
@@ -69,15 +96,13 @@ void setup() {
  */
 
 void loop() {
-
-  //MIC CONTROLS
   if(digitalRead(micPin) == HIGH)
   {
     if(micState == false)
     {
-      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
-        strip.setPixelColor(j, strip.Color(0,   0, brite));         //  Set pixel's color (in RAM)
-        strip.show();                          //  Update strip to match
+      for(int j=ledCount-4; j<ledCount; j++) {
+        strip.setPixelColor(j, strip.Color(0,   0, brite));  
+        strip.show();  
       }//for
     }
     micState = true;
@@ -86,14 +111,14 @@ void loop() {
   {
     if(micState == true)
     {
-      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
-        strip.setPixelColor(j, 0);         //  Set pixel's color (in RAM)
-        strip.show();                          //  Update strip to match
+      for(int j=ledCount-4; j<ledCount; j++) { 
+        strip.setPixelColor(j, 0);    
+        strip.show();          
       }//for
     }
     micState = false;
   }
-
+  
   //BLUETOOTH DATA CONTROL
   if (Bluetooth.available()){//checks if the app is sending new data
     data=Bluetooth.read();
@@ -133,20 +158,20 @@ void loop() {
   } //if irrecv
 
   //SWITCH CONTROL
-  if(digitalRead(switchPin)==HIGH){
+  Serial.write(digitalRead(relayPin));
+  if(digitalRead(relayPin)==HIGH){
     if(relayState==false){
       colorWipe(strip.Color(0,   brite,   0), pulse); // Green
-      digitalWrite(relayPin, HIGH);
       relayState=true;
       
     }
-    if(relayState==true){
-      colorWipe(0, 0); // Blank
-      digitalWrite(relayPin, LOW);
-      relayState=false;
-    }
+
   }
   else{
+    if(relayState==true){
+    colorWipe(0, 0); // Blank
+    relayState=false;
+    }
     
   }
 
