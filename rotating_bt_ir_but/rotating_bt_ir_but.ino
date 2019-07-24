@@ -54,6 +54,25 @@ void setup() {
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
   pinMode(micButton, INPUT);
+
+  //initialize mic lights
+  if(digitalRead(micButton) == HIGH)
+  {
+    for(int j=ledCount-4; j<ledCount; j++) { 
+      strip.setPixelColor(j, strip.Color(0,   0, brite));  
+      strip.show();   
+    }//for
+    micState = true;
+  }
+  else
+  {
+    for(int j=ledCount-4; j<ledCount; j++) {
+      strip.setPixelColor(j, 0); 
+      strip.show();
+    }//for
+    micState = false;
+  }
+  
 }//setup
 
 /* BLUETOOTH APP DATA
@@ -83,9 +102,9 @@ void loop() {
   {
     if(micState == false)
     {
-      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
-        strip.setPixelColor(j, strip.Color(0,   0, brite));         //  Set pixel's color (in RAM)
-        strip.show();                          //  Update strip to match
+      for(int j=ledCount-4; j<ledCount; j++) {
+        strip.setPixelColor(j, strip.Color(0,   0, brite));  
+        strip.show();  
       }//for
     }
     micState = true;
@@ -94,9 +113,9 @@ void loop() {
   {
     if(micState == true)
     {
-      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
-        strip.setPixelColor(j, 0);         //  Set pixel's color (in RAM)
-        strip.show();                          //  Update strip to match
+      for(int j=ledCount-4; j<ledCount; j++) { 
+        strip.setPixelColor(j, 0);    
+        strip.show();          
       }//for
     }
     micState = false;

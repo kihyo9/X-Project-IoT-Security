@@ -37,11 +37,11 @@ int power=1;
 int brite=255;
 int pulse=25;
 int change=1;
-bool micState = true;
+bool micState = false;
 
 void setup() {
   Bluetooth.begin(9600);
-
+  Serial.begin(9600);
   pinMode(relayPin, OUTPUT); //relay
   digitalWrite(relayPin, HIGH);
   
@@ -55,6 +55,24 @@ void setup() {
   pinMode(button2Pin, INPUT);
   pinMode(button3Pin, INPUT);
   pinMode(micButton, INPUT);
+
+  //initialize mic lights
+  if(digitalRead(micButton) == HIGH)
+  {
+    for(int j=ledCount-4; j<ledCount; j++) { 
+      strip.setPixelColor(j, strip.Color(0,   0, brite));  
+      strip.show();   
+    }//for
+    micState = true;
+  }
+  else
+  {
+    for(int j=ledCount-4; j<ledCount; j++) {
+      strip.setPixelColor(j, 0); 
+      strip.show();
+    }//for
+    micState = false;
+  }
 
 }//setup
 
@@ -85,9 +103,9 @@ void loop() {
   {
     if(micState == false)
     {
-      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
-        strip.setPixelColor(j, strip.Color(0,   0, brite));         //  Set pixel's color (in RAM)
-        strip.show();                          //  Update strip to match
+      for(int j=ledCount-4; j<ledCount; j++) {
+        strip.setPixelColor(j, strip.Color(0,   0, brite));  
+        strip.show();  
       }//for
     }
     micState = true;
@@ -96,9 +114,9 @@ void loop() {
   {
     if(micState == true)
     {
-      for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
-        strip.setPixelColor(j, 0);         //  Set pixel's color (in RAM)
-        strip.show();                          //  Update strip to match
+      for(int j=ledCount-4; j<ledCount; j++) { 
+        strip.setPixelColor(j, 0);    
+        strip.show();          
       }//for
     }
     micState = false;
