@@ -1,4 +1,4 @@
-/*
+  /*
   Last edited: Jul 14 2019
   by Ruben Verhagen
 */
@@ -9,10 +9,10 @@
 #include <IRremote.h>
 
 //PIN DEFINITIONS
-#define ledPin    6
-#define relayPin   11
-#define servoPin  9
-#define irPin 10 
+#define ledPin    13
+#define relayPin   6
+#define servoPin  0
+#define irPin 1
 #define button1Pin 7
 #define button2Pin 5
 #define button3Pin 2
@@ -27,16 +27,16 @@ Adafruit_NeoPixel strip(ledCount, ledPin);
 IRrecv irrecv(irPin);  //IR reciever
 decode_results results; //results from IR
 
-SoftwareSerial Bluetooth(3,4);  //defines arduino RX,TX  
+SoftwareSerial Bluetooth(4,3);  //defines arduino RX,TX  
 
 Servo myservo; //servo object
 int data=0;
 int pos=1;
 int prev=1;
-int power=1;
+bool power=1;
 int brite=255;
 int pulse=25;
-int change=1;
+bool change=1;
 bool micState = true;
 
 void setup() {
@@ -56,6 +56,23 @@ void setup() {
   pinMode(button3Pin, INPUT);
   pinMode(micButton, INPUT);
 
+   //initialize mic lights
+  if(digitalRead(micButton) == HIGH)
+  {
+    for(int j=ledCount-4; j<ledCount; j++) { 
+      strip.setPixelColor(j, strip.Color(0,   0, brite));  
+      strip.show();   
+    }//for
+    micState = true;
+  }
+  else
+  {
+    for(int j=ledCount-4; j<ledCount; j++) {
+      strip.setPixelColor(j, 0); 
+      strip.show();
+    }//for
+    micState = false;
+  }
 }//setup
 
 /* BLUETOOTH APP DATA
@@ -81,7 +98,7 @@ void setup() {
  */
 
 void loop() {
-  if(digitalRead(micButton) == HIGH)
+  if(digitalRead(micButton) == HIGH && power == 1)
   {
     if(micState == false)
     {
@@ -123,6 +140,11 @@ void loop() {
         power= 0;
         digitalWrite(relayPin, LOW);
         colorWipe(0,0);
+        for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
+            strip.setPixelColor(j, 0);         //  Set pixel's color (in RAM) to BLANK
+            strip.show();                          //  Update strip to match
+          }//for
+          micState = false;
         break;
       case 4:
         power= 1;
@@ -159,6 +181,11 @@ void loop() {
           power= 0;
           digitalWrite(relayPin, LOW);
           colorWipe(0,0);
+          for(int j=ledCount-4; j<ledCount; j++) { // For each pixel in strip...
+            strip.setPixelColor(j, 0);         //  Set pixel's color (in RAM) to BLANK
+            strip.show();                          //  Update strip to match
+          }//for
+          micState = false;
         }//else
         break;
       
